@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { Routes, Route } from "react-router-dom";
 import './App.css'
-
 //admin
 import AdminDashboard from './pages/Admin/AdminDashboard'
 import AdminLogin from './pages/Admin/AdminLogin'
@@ -54,6 +53,7 @@ function App() {
             </ProtectedRoute>
           } />
         </Route>
+          <Route path="map" element={<Map/>} />
       </Routes>
     </>
   )
