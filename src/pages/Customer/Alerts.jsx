@@ -206,8 +206,8 @@ const Alerts = () => {
               You need to be logged in to set price alerts and receive notifications.
             </p>
             <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
-              <Link to="/vendor/login" style={{ background: BLUE, color: WHITE, fontWeight: 700, fontSize: 14, padding: "11px 24px", borderRadius: 10, textDecoration: "none", boxShadow: "0 4px 12px rgba(37,99,235,0.25)" }}>
-                Login as Vendor
+              <Link to="/customer/login" style={{ background: BLUE, color: WHITE, fontWeight: 700, fontSize: 14, padding: "11px 24px", borderRadius: 10, textDecoration: "none", boxShadow: "0 4px 12px rgba(37,99,235,0.25)" }}>
+                Login as customer
               </Link>
               <Link to="/search" style={{ background: BLUE_LT, color: BLUE, fontWeight: 700, fontSize: 14, padding: "11px 24px", borderRadius: 10, textDecoration: "none", border: `1.5px solid ${BLUE_MD}` }}>
                 Browse Prices Instead

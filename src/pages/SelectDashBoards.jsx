@@ -18,7 +18,7 @@ const roles = [
     subtitle: "Find cheapest prices near you",
     desc:     "Search grocery prices at local stores, compare on a map, set price drop alerts, and view 30-day price history.",
     features: ["Search by pincode", "Compare store prices", "Price drop alerts", "Interactive map"],
-    btnLabel: "Browse Prices →",
+    btnLabel: "Customer Login →",
     btnBg:    BLUE,
     accent:   BLUE,
     cardBg:   WHITE,
@@ -52,10 +52,10 @@ const roles = [
 const SelectDashBoards = () => {
   const navigate = useNavigate()
 
-  // ── original navigation logic — unchanged ──
-  function handleCustomer() { navigate("/search")        }
-  function handleVendor()   { navigate("/vendor/login")  }
-  function handleAdmin()    { navigate("/admin/login")   }
+  // ── updated navigation logic (consistent /customer/login route) ──
+  function handleCustomer() { navigate("/customer/login")        }
+  function handleVendor()   { navigate("/vendor/login")          }
+  function handleAdmin()    { navigate("/admin/login")           }
 
   const handlers = { customer: handleCustomer, vendor: handleVendor, admin: handleAdmin }
 

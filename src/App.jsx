@@ -20,6 +20,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Map from './pages/Customer/Map';
 import Alerts from './pages/Customer/Alerts';
 import SelectDashBoards from './pages/SelectDashBoards';
+import CustomerLogin from './pages/Customer/CustomerLogin';
 
 function App() {
   return (
@@ -34,7 +35,12 @@ function App() {
           <Route path="product/:id" element={<Product />} />
           <Route path="map" element={<Map />} />
           <Route path="alerts" element={<Alerts />} />
+          <Route path="login" element={<CustomerLogin />} />
+          <Route path="customer/login" element={<CustomerLogin />} />
         </Route>
+
+        {/* /selectDashboards subpath compatibility (old/relative path link) */}
+        <Route path="/selectDashboards/customer/login" element={<CustomerLogin />} />
         
         {/* vendors-routes  */}
         <Route path="/vendor" element={<VendorLayout/>}>
