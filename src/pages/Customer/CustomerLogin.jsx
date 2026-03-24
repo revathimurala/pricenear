@@ -66,9 +66,17 @@ export default function CustomerLogin() {
     setLoading(true)
     try {
       await applyPersistence()
-      await signInWithEmailAndPassword(auth, email, password)
-      navigate("/alerts")
-    } catch (e) { setErr(friendly(e.code)) }
+      const cred = await signInWithEmailAndPassword(auth, email, password)
+      // 🔥 GET USER DATA FROM FIRESTORE
+      const docRef = doc(db, "users", cred.user.uid)
+      const snap = await getDoc(docRef)
+      if (snap.exists()) {
+        const userData = snap.data()
+        // store in localStorage OR context
+        localStorage.setItem("user", JSON.stringify(userData))
+      }
+      navigate("/home")
+  } catch (e) { setErr(friendly(e.code)) }
     finally     { setLoading(false) }
   }
 
@@ -90,7 +98,7 @@ export default function CustomerLogin() {
         role:      "customer",
         createdAt: new Date().toISOString(),
       })
-      navigate("/alerts")
+      navigate("/home")
     } catch (e) { setErr(friendly(e.code)) }
     finally     { setLoading(false) }
   }
@@ -124,7 +132,7 @@ export default function CustomerLogin() {
           createdAt: new Date().toISOString(),
         })
       }
-      navigate("/alerts")
+      navigate("/home")
     } catch (e) { setErr(friendly(e.code)) }
     finally     { setLoading(false) }
   }

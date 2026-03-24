@@ -1,5 +1,6 @@
 import React from 'react'
 import { useState, useEffect } from "react"
+import { useNavigate } from 'react-router-dom'
 import { db } from "../../services/firebase"
 import { auth } from '../../services/firebase'
 import { collection, getDocs, addDoc, query, where, serverTimestamp, doc, deleteDoc } from "firebase/firestore"
@@ -22,6 +23,7 @@ const inputStyle = {
 
 const VendorDashboard = () => {
   // ── all original state unchanged ──
+  const navigate = useNavigate()
   const [products,    setProducts]    = useState([])
   const [productName, setProductName] = useState("")
   const [message,     setMessage]     = useState("")
@@ -182,7 +184,34 @@ const VendorDashboard = () => {
 
             <div style={cardStyle}>
               <div style={{ fontWeight:800,fontSize:14,marginBottom:4 }}>Add New Store</div>
-              <div style={{ color:GRAY,fontSize:12,marginBottom:16 }}>Fill all fields to register your store on the map</div>
+              <div style={{ color:GRAY,fontSize:12,marginBottom:16 }}>Register your store location on the map</div>
+              
+              {/* LOCATION BUTTON */}
+              <button onClick={() => navigate("/vendor/add-store")} style={{
+                width: "100%",
+                background: "#10B981",
+                color: WHITE,
+                border: "none",
+                borderRadius: 12,
+                padding: "13px",
+                fontWeight: 800,
+                fontSize: 14,
+                cursor: "pointer",
+                fontFamily: FONT,
+                boxShadow: "0 4px 14px rgba(16,185,129,0.25)",
+                marginBottom: 14,
+              }}
+                onMouseEnter={(e) => e.currentTarget.style.background = "#059669"}
+                onMouseLeave={(e) => e.currentTarget.style.background = "#10B981"}
+              >
+                📍 Add Store with GPS Location
+              </button>
+
+              <div style={{ fontSize: 12, color: GRAY, marginBottom: 14, textAlign: "center" }}>
+                ─ OR ─
+              </div>
+
+              <div style={{ fontWeight:700,fontSize:12,marginBottom:12,color:GRAY,textTransform:"uppercase" }}>Manual Entry</div>
               {storeSuccess && <div style={{ background:"#DCFCE7",border:"1px solid #BBF7D0",borderRadius:10,padding:"10px 14px",color:"#166534",fontSize:13,fontWeight:600,marginBottom:14 }}>✅ {storeSuccess}</div>}
               <div style={{ display:"flex",flexDirection:"column",gap:10 }}>
                 <div><label style={labelStyle}>Store Name</label><input placeholder="e.g. Sharma Kirana" value={storeName} onChange={e=>setStoreName(e.target.value)} style={inputStyle} onFocus={e=>e.target.style.borderColor=BLUE} onBlur={e=>e.target.style.borderColor="#E5E7EB"} /></div>

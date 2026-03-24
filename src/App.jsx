@@ -21,6 +21,10 @@ import Map from './pages/Customer/Map';
 import Alerts from './pages/Customer/Alerts';
 import SelectDashBoards from './pages/SelectDashBoards';
 import CustomerLogin from './pages/Customer/CustomerLogin';
+import Profile from './pages/Customer/Profile';
+import VendorProfile from './pages/Vendor/VendorProfile';
+import AdminProfile from './pages/Admin/AdminProfile';
+import AddStoreWithLocation from './pages/Vendor/AddStoreWithLocation';
 
 function App() {
   return (
@@ -32,6 +36,8 @@ function App() {
         <Route path="/" element={<CustomerLayout/>}>
           <Route index element={<Home />} />
           <Route path="search" element={<Search />} />
+          <Route path="home" element={<Home/>} />
+          <Route path="profile" element={<Profile />} />
           <Route path="product/:id" element={<Product />} />
           <Route path="map" element={<Map />} />
           <Route path="alerts" element={<Alerts />} />
@@ -45,6 +51,8 @@ function App() {
         {/* vendors-routes  */}
         <Route path="/vendor" element={<VendorLayout/>}>
           <Route path="login" element={<VendorLogin />} />
+          <Route path="profile" element={<VendorProfile />} />
+          <Route path="add-store" element={<AddStoreWithLocation />} />
           <Route path="dashboard" element={
               <VendorDashboard />
           }/>
@@ -53,6 +61,7 @@ function App() {
         {/* Admin-routes  */}
         <Route path="/admin" element={<AdminLayout/>}>
           <Route path="login" element={<AdminLogin />}/>
+          <Route path="profile" element={<AdminProfile />} />
           <Route path="dashboard" element={
             <ProtectedRoute allowedRole="admin">
               <AdminDashboard />
@@ -60,6 +69,7 @@ function App() {
           } />
         </Route>
           <Route path="map" element={<Map/>} />
+          
       </Routes>
     </>
   )

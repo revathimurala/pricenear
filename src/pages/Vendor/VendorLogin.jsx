@@ -58,7 +58,15 @@ const VendorLogin = () => {
     setLoading(true)
     try {
       await applyPersistence()
-      await signInWithEmailAndPassword(auth,email,password)
+      const cred = await signInWithEmailAndPassword(auth,email,password)
+      // GET USER DATA FROM FIRESTORE
+      const docRef = doc(db, "users", cred.user.uid)
+      const snap = await getDoc(docRef)
+      if (snap.exists()) {
+        const userData = snap.data()
+        // store in localStorage
+        localStorage.setItem("user", JSON.stringify(userData))
+      }
       navigate("/vendor/dashboard")
     } catch(e) { setErr(friendly(e.code)) } finally { setLoading(false) }
   }
@@ -72,10 +80,13 @@ const VendorLogin = () => {
     try {
       await applyPersistence()
       const cred = await createUserWithEmailAndPassword(auth,email,password)
-      await setDoc(doc(db,"users",cred.user.uid),{
+      const userData = {
         uid:cred.user.uid, email:cred.user.email,
         shopName, role:"vendor", createdAt:new Date().toISOString()
-      })
+      }
+      await setDoc(doc(db,"users",cred.user.uid), userData)
+      // Store in localStorage
+      localStorage.setItem("user", JSON.stringify(userData))
       navigate("/vendor/dashboard")
     } catch(e) { setErr(friendly(e.code)) } finally { setLoading(false) }
   }
@@ -97,8 +108,14 @@ const VendorLogin = () => {
       const result = await signInWithPopup(auth,new GoogleAuthProvider())
       const ref  = doc(db,"users",result.user.uid)
       const snap = await getDoc(ref)
-      if (!snap.exists())
-        await setDoc(ref,{ uid:result.user.uid, email:result.user.email, shopName:result.user.displayName||"", role:"vendor", createdAt:new Date().toISOString() })
+      if (!snap.exists()) {
+        const newUserData = { uid:result.user.uid, email:result.user.email, shopName:result.user.displayName||"", role:"vendor", createdAt:new Date().toISOString() }
+        await setDoc(ref, newUserData)
+        localStorage.setItem("user", JSON.stringify(newUserData))
+      } else {
+        const userData = snap.data()
+        localStorage.setItem("user", JSON.stringify(userData))
+      }
       navigate("/vendor/dashboard")
     } catch(e) { setErr(friendly(e.code)) } finally { setLoading(false) }
   }

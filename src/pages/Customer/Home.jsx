@@ -1,5 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
+import PincodeSearch from '../../components/PincodeSearch'
 
 const BLUE    = "#2563EB"
 const BLUE2   = "#1D4ED8"
@@ -80,6 +81,13 @@ export default function Home() {
               🗺️ View Map
             </Link>
           </div>
+        </div>
+      </section>
+
+      {/* ══════════ PINCODE SEARCH ══════════ */}
+      <section style={{ background: WHITE, padding: "40px 20px" }}>
+        <div style={{ maxWidth: 900, margin: "0 auto" }}>
+          <PincodeSearch />
         </div>
       </section>
 

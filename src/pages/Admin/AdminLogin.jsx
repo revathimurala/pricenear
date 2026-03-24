@@ -50,6 +50,8 @@ const AdminLogin = () => {
           await auth.signOut()
           return
         }
+        // Store in localStorage
+        localStorage.setItem("user", JSON.stringify(data))
         login(data.role, cred.user.uid, cred.user.email)
         navigate("/admin/dashboard")
       } else {

@@ -20,10 +20,13 @@ const Search = () => {
   const [stores,       setStores]       = useState([])
   const [prices,       setPrices]       = useState([])
   const [userLocation, setUserLocation] = useState(null)
+  const [userPincode,  setUserPincode]  = useState(localStorage.getItem("searchPincode") || "")
+  const [pincodeInput, setPincodeInput] = useState("")
+  const [locationMode, setLocationMode] = useState(userPincode ? "pincode" : null)
 
   useEffect(() => {
     fetchProducts(); fetchStores(); fetchPrices()
-    if (navigator.geolocation)
+    if (navigator.geolocation && !userPincode)
       navigator.geolocation.getCurrentPosition(pos =>
         setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude })
       )
@@ -44,13 +47,46 @@ const Search = () => {
     setFiltered(products.filter(p => p.name.toLowerCase().includes(v.toLowerCase())))
   }
 
-  const filteredMeta = filtered.map(p => {
+  const handleSetPincode = () => {
+    if (!pincodeInput || !/^\d{6}$/.test(pincodeInput)) {
+      alert("Please enter a valid 6-digit pincode")
+      return
+    }
+    localStorage.setItem("searchPincode", pincodeInput)
+    setUserPincode(pincodeInput)
+    setPincodeInput("")
+    setLocationMode("pincode")
+    setUserLocation(null)
+  }
+
+  const handleUseLocation = () => {
+    navigator.geolocation.getCurrentPosition(pos =>
+      setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude })
+    )
+    setUserPincode("")
+    localStorage.removeItem("searchPincode")
+    setLocationMode("gps")
+  }
+
+  const handleClearPincode = () => {
+    setUserPincode("")
+    setPincodeInput("")
+    localStorage.removeItem("searchPincode")
+    setLocationMode(null)
+    setUserLocation(null)
+  }
+
+  const filteredMeta = filtered.filter(p => {
+    const store = stores.find(s => s.id === p.storeId)
+    if (userPincode && store?.pincode !== userPincode) return false
+    return true
+  }).map(p => {
     const store      = stores.find(s => s.id === p.storeId)
     const priceObj   = prices.find(pr => pr.productId===p.id && pr.storeId===p.storeId)
     const allPrices  = prices.filter(pr => pr.productId===p.id)
     const cheapest   = allPrices.length ? Math.min(...allPrices.map(pr=>pr.price)) : null
     const isCheapest = priceObj && cheapest!==null && priceObj.price===cheapest
-    const distance   = userLocation && store?.latitude && store?.longitude
+    const distance   = userLocation && store?.latitude && store?.longitude && locationMode==="gps"
       ? parseFloat(calcDist(userLocation.lat,userLocation.lng,store.latitude,store.longitude))
       : null
     return { ...p, store, priceObj, cheapest, isCheapest, distance }
@@ -122,6 +158,57 @@ const Search = () => {
         </div>
       </div>
 
+      {/* PINCODE / LOCATION MODE */}
+      <div style={{ background:WHITE, borderTop:"1px solid #E5E7EB", padding:"14px 20px" }}>
+        <div style={{ maxWidth:680, margin:"0 auto" }}>
+          {userPincode ? (
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:10 }}>
+              <div style={{ display:"flex", alignItems:"center", gap:8, flex:1 }}>
+                <span style={{ fontSize:18 }}>📍</span>
+                <div style={{ flex:1 }}>
+                  <div style={{ fontSize:12, color:GRAY, fontWeight:600 }}>Searching in pincode</div>
+                  <div style={{ fontSize:16, fontWeight:700, color:BLUE }}>{userPincode}</div>
+                </div>
+              </div>
+              <div style={{ display:"flex", gap:6 }}>
+                <button onClick={handleClearPincode}
+                  style={{ background:"#FEE2E2", color:"#991B1B", border:"none", borderRadius:8, padding:"8px 14px", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:FONT }}>
+                  ✕ Clear
+                </button>
+                <button onClick={handleUseLocation}
+                  style={{ background:BLUE_LT, color:BLUE, border:"none", borderRadius:8, padding:"8px 14px", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:FONT }}>
+                  🌍 Use Location
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+              <div style={{ display:"flex", gap:8 }}>
+                <div style={{ flex:1, display:"flex", gap:6, alignItems:"center" }}>
+                  <span style={{ fontSize:18 }}>📮</span>
+                  <input
+                    type="text"
+                    placeholder="Enter 6-digit pincode..."
+                    value={pincodeInput}
+                    onChange={(e)=>setPincodeInput(e.target.value.replace(/\D/g,"").slice(0,6))}
+                    onKeyPress={(e)=>e.key==="Enter" && handleSetPincode()}
+                    style={{ flex:1, border:"1.5px solid #E5E7EB", borderRadius:8, padding:"8px 12px", fontSize:13, fontFamily:FONT, outline:"none" }}
+                  />
+                  <button onClick={handleSetPincode}
+                    style={{ background:BLUE, color:WHITE, border:"none", borderRadius:8, padding:"8px 16px", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:FONT, whiteSpace:"nowrap" }}>
+                    Set
+                  </button>
+                </div>
+              </div>
+              <button onClick={handleUseLocation}
+                style={{ background:BLUE_LT, border:`1.5px solid ${BLUE_MD}`, color:BLUE, borderRadius:8, padding:"8px 14px", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:FONT }}>
+                🌍 Or use my current location
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
       <div style={{ maxWidth:760, margin:"0 auto", padding:"24px 16px 0" }}>
 
         {/* Stats */}
@@ -130,7 +217,8 @@ const Search = () => {
             {[
               { v:filteredMeta.length, l:"Results",    icon:"📦", c:BLUE },
               { v:minPrice!=null?`₹${minPrice}`:"—",   l:"Lowest Price", icon:"💰", c:"#16A34A" },
-              { v:nearestStore?`${nearestStore.distance.toFixed(2)} km`:"—", l:"Nearest", icon:"📍", c:"#D97706" },
+              { v:locationMode==="pincode"?`📮 ${userPincode}`:nearestStore?`${nearestStore.distance.toFixed(2)} km`:"—", 
+                l:locationMode==="pincode"?"Area":"Nearest", icon:"📍", c:"#D97706" },
             ].map(({v,l,icon,c})=>(
               <div key={l} style={{ background:WHITE, border:"1.5px solid #E5E7EB", borderRadius:14, padding:"14px 12px", textAlign:"center", boxShadow:"0 1px 4px rgba(0,0,0,0.04)" }}>
                 <div style={{ fontSize:18, marginBottom:4 }}>{icon}</div>

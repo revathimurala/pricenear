@@ -13,17 +13,68 @@ const Navbar = () => {
   const location   = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
-
+  const [user, setUser] = useState(null)
+  const [dropdownOpen, setDropdownOpen] = useState(false)
+  
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8)
     window.addEventListener('scroll', onScroll)
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
-
-  useEffect(() => { setMenuOpen(false) }, [location.pathname])
+  
+  // Read localStorage on mount
+  useEffect(() => {
+    const storedUser = JSON.parse(localStorage.getItem("user"))
+    setUser(storedUser)
+  }, [])
+  
+  // Listen for storage changes from other tabs
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const storedUser = JSON.parse(localStorage.getItem("user"))
+      setUser(storedUser)
+    }
+    window.addEventListener("storage", handleStorageChange)
+    return () => window.removeEventListener("storage", handleStorageChange)
+  }, [])
+  useEffect(() => {
+    setMenuOpen(false)
+    // Re-read localStorage on route change to update user info
+    const storedUser = JSON.parse(localStorage.getItem("user"))
+    setUser(storedUser)
+  }, [location.pathname])
+  
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (!e.target.closest('[data-dropdown]')) {
+        setDropdownOpen(false)
+      }
+    }
+    document.addEventListener('click', handleClickOutside)
+    return () => document.removeEventListener('click', handleClickOutside)
+  }, [])
 
   const handleLogin = () => navigate("/selectDashboards")
-
+  
+  const handleLogout = () => {
+    localStorage.removeItem("user")
+    setUser(null)
+    setDropdownOpen(false)
+    navigate("/")
+  }
+  
+  const handleViewProfile = () => {
+    setDropdownOpen(false)
+    if (user?.role === "vendor") {
+      navigate("/vendor/profile")
+    } else if (user?.role === "admin") {
+      navigate("/admin/profile")
+    } else {
+      navigate("/profile")
+    }
+  }
+  
   const links = [
     { to: "/",       label: "Home"   },
     { to: "/search", label: "Search" },
@@ -76,17 +127,66 @@ const Navbar = () => {
           </div>
 
           {/* RIGHT */}
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <button onClick={handleLogin} style={{
-              background: BLUE, color: WHITE, border: "none", borderRadius: 10,
-              padding: "9px 22px", fontWeight: 700, fontSize: 14, cursor: "pointer",
-              fontFamily: FONT, boxShadow: "0 4px 12px rgba(37,99,235,0.25)", transition: "all 0.15s",
-            }}
-              onMouseEnter={e => { e.currentTarget.style.background = BLUE2; e.currentTarget.style.transform = "translateY(-1px)" }}
-              onMouseLeave={e => { e.currentTarget.style.background = BLUE;  e.currentTarget.style.transform = "none" }}
-            >
-              Login
-            </button>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, position: "relative" }}>
+            {user ? (
+              <div data-dropdown style={{ position: "relative" }}>
+                <button onClick={() => setDropdownOpen(!dropdownOpen)} style={{
+                  background: BLUE, color: WHITE, border: "none", borderRadius: 10,
+                  padding: "9px 22px", fontWeight: 700, fontSize: 14, cursor: "pointer",
+                  fontFamily: FONT, boxShadow: "0 4px 12px rgba(37,99,235,0.25)", transition: "all 0.15s",
+                  display: "flex", alignItems: "center", gap: 6,
+                }}
+                  onMouseEnter={e => { e.currentTarget.style.background = BLUE2; e.currentTarget.style.transform = "translateY(-1px)" }}
+                  onMouseLeave={e => { e.currentTarget.style.background = BLUE;  e.currentTarget.style.transform = "none" }}
+                >
+                  {user.name || user.email}
+                  <span style={{ fontSize: 12 }}>▼</span>
+                </button>
+                
+                {/* DROPDOWN MENU */}
+                {dropdownOpen && (
+                  <div style={{
+                    position: "absolute", top: "100%", right: 0, marginTop: 8,
+                    background: WHITE, borderRadius: 12, boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+                    border: "1px solid #E5E7EB", minWidth: 200, zIndex: 1000,
+                  }}>
+                    <button onClick={handleViewProfile} style={{
+                      display: "block", width: "100%", textAlign: "left", padding: "12px 16px",
+                      border: "none", background: "transparent", cursor: "pointer", fontSize: 14,
+                      color: DARK, fontFamily: FONT, transition: "all 0.15s",
+                      borderBottom: "1px solid #E5E7EB"
+                    }}
+                      onMouseEnter={e => e.currentTarget.style.background = "#F9FAFB"}
+                      onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                    >
+                      👤 View Profile
+                    </button>
+                    <button onClick={handleLogout} style={{
+                      display: "block", width: "100%", textAlign: "left", padding: "12px 16px",
+                      border: "none", background: "transparent", cursor: "pointer", fontSize: 14,
+                      color: "#EF4444", fontFamily: FONT, fontWeight: 600, transition: "all 0.15s",
+                      borderRadius: "0 0 12px 12px"
+                    }}
+                      onMouseEnter={e => e.currentTarget.style.background = "#FEE2E2"}
+                      onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                    >
+                      🚪 Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <button onClick={handleLogin} style={{
+                background: BLUE, color: WHITE, border: "none", borderRadius: 10,
+                padding: "9px 22px", fontWeight: 700, fontSize: 14, cursor: "pointer",
+                fontFamily: FONT, boxShadow: "0 4px 12px rgba(37,99,235,0.25)", transition: "all 0.15s",
+              }}
+                onMouseEnter={e => { e.currentTarget.style.background = BLUE2; e.currentTarget.style.transform = "translateY(-1px)" }}
+                onMouseLeave={e => { e.currentTarget.style.background = BLUE;  e.currentTarget.style.transform = "none" }}
+              >
+                Login
+              </button>
+            )}
             <button onClick={() => setMenuOpen(!menuOpen)} className="ham-btn" style={{
               display: "none", background: WHITE, border: "1.5px solid #E5E7EB",
               borderRadius: 8, width: 38, height: 38, cursor: "pointer",
@@ -118,9 +218,14 @@ const Navbar = () => {
                 }}>{label}</Link>
               )
             })}
-            <button onClick={handleLogin} style={{ marginTop: 4, background: BLUE, color: WHITE, border: "none", borderRadius: 10, padding: "12px", fontWeight: 700, fontSize: 14, cursor: "pointer", fontFamily: FONT }}>
-              Login
+            <button onClick={user ? handleLogout : handleLogin} style={{ marginTop: 4, background: BLUE, color: WHITE, border: "none", borderRadius: 10, padding: "12px", fontWeight: 700, fontSize: 14, cursor: "pointer", fontFamily: FONT, width: "100%" }}>
+              {user ? "🚪 Logout" : "Login"}
             </button>
+            {user && (
+              <button onClick={handleViewProfile} style={{ marginTop: 4, background: "#EFF6FF", color: BLUE, border: "none", borderRadius: 10, padding: "12px", fontWeight: 700, fontSize: 14, cursor: "pointer", fontFamily: FONT, width: "100%" }}>
+                👤 View Profile
+              </button>
+            )}
           </div>
         </div>
       </nav>
